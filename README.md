@@ -4,6 +4,38 @@ Plataforma de gestão de fretes: o vendedor solicita a cotação, a operação e
 
 > Código aberto para leitura e avaliação técnica. Todos os direitos reservados; não há licença de reuso.
 
+## Apresentação
+
+![Painel operacional](im-hub/shots/01-painel-operacional.png)
+
+*Painel operacional: indicadores, pontualidade e ranking de transportadoras. Todos os dados exibidos são fictícios.*
+
+### O fluxo em quatro passos
+
+1. **Solicitar:** o vendedor cria a cotação com itens, rota e tipo de veículo.
+2. **Comparar:** a operação encaminha às transportadoras e compara as respostas lado a lado, com o menor valor em destaque.
+3. **Fechar:** a negociação é fechada com uma transportadora e vira uma programação de carga.
+4. **Acompanhar:** a carga é acompanhada até a entrega, com prazo, status e notificações por e-mail e WhatsApp.
+
+| | |
+|---|---|
+| ![Cotações do vendedor](im-hub/shots/02-solicitar-cotacao.png) | ![Respostas das transportadoras](im-hub/shots/03-cotacao-respostas.png) |
+| **Solicitar cotação:** cotações agrupadas por status, com rota, produto e valor da NF. | **Respostas comparadas:** valor por tonelada, prazos e validade de cada transportadora. |
+| ![Programação de cargas](im-hub/shots/05-programacao-cargas.png) | ![Notificações](im-hub/shots/08-notificacoes-historico.png) |
+| **Programação de cargas:** status, pedido, transportadora e cliente. | **Notificações:** histórico de e-mail e WhatsApp, com envio de teste. |
+| ![Cadastro de transportadoras](im-hub/shots/06-cadastro-transportadoras.png) | ![Cadastro de produtos](im-hub/shots/07-cadastro-produtos.png) |
+| **Transportadoras homologadas:** CNPJ, contato e situação. | **Produtos:** densidade e embalagens permitidas. |
+
+### No celular
+
+A interface é responsiva: as listas viram cartões, e o menu vira uma gaveta.
+
+<p>
+  <img src="im-hub/shots/09-cargas-mobile.png" alt="Programação de cargas no celular" width="260">
+  &nbsp;&nbsp;
+  <img src="im-hub/shots/10-cotacoes-mobile.png" alt="Consulta de cotações no celular" width="260">
+</p>
+
 ## Funcionalidades
 
 - **Cotação** de frete fracionado e granel, com itens, embalagens, rota (IBGE) e tipo de veículo.
@@ -34,6 +66,7 @@ Plataforma de gestão de fretes: o vendedor solicita a cotação, a operação e
 |---|---|
 | `BACK/` | API REST e painel administrativo (Laravel 13, PHP 8.3+) |
 | `FRONT/` | Aplicação web (Vue 3, Vite, Tailwind 4) |
+| `im-hub/` | Material de apresentação do projeto: capa, prints e documentos |
 | `evolution/` | Compose opcional da Evolution API (WhatsApp) para ambiente local; copie `.env.example` para `.env` e preencha `AUTHENTICATION_API_KEY` e `POSTGRES_PASSWORD` (por exemplo com `openssl rand -hex 24`) |
 
 ## Documentação

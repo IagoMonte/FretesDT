@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "slug": "fretesdt",
+  "title": {
+    "pt": "FretesDT"
+  },
+  "summary": {
+    "pt": "Plataforma de gestão de fretes: o vendedor solicita a cotação, a operação encaminha a várias transportadoras, compara as respostas, fecha a negociação e acompanha a carga até a entrega."
+  },
+  "status": "live",
+  "category": {
+    "slug": "gestao",
+    "name": {
+      "pt": "gestão"
+    },
+    "tagline": {
+      "pt": "Sistemas que organizam a operação: cotação, carga, cadastro e relatório no mesmo lugar."
+    },
+    "colors": [
+      "#ffffff",
+      "#0b0b0b",
+      "#8a8a8a"
+    ],
+    "fx": "grid"
+  },
+  "stack": [
+    "Laravel",
+    "PHP",
+    "Vue 3",
+    "Vite",
+    "Tailwind CSS",
+    "MySQL",
+    "SQLite",
+    "JWT",
+    "PHPUnit",
+    "Vitest",
+    "Playwright",
+    "Evolution API",
+    "Meta API",
+    "Docker"
+  ],
+  "facts": {
+    "role": {
+      "pt": "Desenvolvedor full stack"
+    },
+    "period": {
+      "start": "2026-10",
+      "end": "atual"
+    },
+    "context": {
+      "pt": "projeto de trabalho"
+    }
+  },
+  "links": [
+    {
+      "kind": "repo",
+      "url": "https://github.com/IagoMonte/FretesDT"
+    }
+  ],
+  "thumbnail": "thumbnail.png",
+  "shots": [
+    {
+      "file": "shots/01-painel-operacional.png",
+      "caption": {
+        "pt": "painel operacional: indicadores, pontualidade e ranking de transportadoras"
+      }
+    },
+    {
+      "file": "shots/02-solicitar-cotacao.png",
+      "caption": {
+        "pt": "cotações do vendedor agrupadas por status, com rota, produto e valor"
+      }
+    },
+    {
+      "file": "shots/03-cotacao-respostas.png",
+      "caption": {
+        "pt": "cotação com as respostas das transportadoras lado a lado e o menor valor"
+      }
+    },
+    {
+      "file": "shots/04-consulta-cotacoes.png",
+      "caption": {
+        "pt": "consulta de cotações com busca por código, cliente, produto e rota"
+      }
+    },
+    {
+      "file": "shots/05-programacao-cargas.png",
+      "caption": {
+        "pt": "programação de cargas com status, pedido, transportadora e cliente"
+      }
+    },
+    {
+      "file": "shots/06-cadastro-transportadoras.png",
+      "caption": {
+        "pt": "cadastro de transportadoras homologadas, com CNPJ, contato e situação"
+      }
+    },
+    {
+      "file": "shots/07-cadastro-produtos.png",
+      "caption": {
+        "pt": "cadastro de produtos com densidade e embalagens permitidas"
+      }
+    },
+    {
+      "file": "shots/08-notificacoes-historico.png",
+      "caption": {
+        "pt": "histórico de notificações por e-mail e WhatsApp, com envio de teste"
+      }
+    },
+    {
+      "file": "shots/09-cargas-mobile.png",
+      "caption": {
+        "pt": "programação de cargas no celular, em cartões com prazo e situação"
+      }
+    },
+    {
+      "file": "shots/10-cotacoes-mobile.png",
+      "caption": {
+        "pt": "consulta de cotações no celular"
+      }
+    }
+  ],
+  "docs": [
+    {
+      "name": "README",
+      "file": "docs/readme.md"
+    },
+    {
+      "name": "ARQUITETURA",
+      "file": "docs/arquitetura.md"
+    }
+  ]
+}
