@@ -34,10 +34,8 @@
     "JWT",
     "PHPUnit",
     "Vitest",
-    "Playwright",
     "Evolution API",
-    "Meta API",
-    "Docker"
+    "Meta API"
   ],
   "facts": {
     "role": {
