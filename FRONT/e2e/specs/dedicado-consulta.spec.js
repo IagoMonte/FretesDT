@@ -1,0 +1,140 @@
+import { test, expect, USUARIOS, entrar, irPara, foto, api } from '../support/base.js'
+
+test.describe.configure({ mode: 'serial' })
+
+let codigo
+const toast = (page) => page.locator('.toast').last()
+const cartao = (page, cod) => page.locator('.qcard', { hasText: cod })
+
+async function escolherNaLista(page, input, texto) {
+  await input.fill('')
+  await input.pressSequentially(texto, { delay: 30 })
+  const opcao = page.getByRole('option', { name: new RegExp(texto, 'i') }).first()
+  await expect(opcao).toBeVisible()
+  await opcao.dispatchEvent('mousedown')
+}
+
+async function marcarBombonaFracionada(valor) {
+  const admin = await api(USUARIOS.admin)
+  const lista = await (await admin.get('embalagens')).json()
+  const versao = lista.data.find((e) => e.codigo === 'BOMBONA').versao
+  const r = await admin.patch('embalagens/BOMBONA', { data: { fracionada: valor, versao } })
+  expect(r.ok(), `PATCH embalagens/BOMBONA: ${r.status()} ${await r.text()}`).toBeTruthy()
+  await admin.dispose()
+}
+
+test.beforeAll(async () => { await marcarBombonaFracionada(true) })
+test.afterAll(async () => { await marcarBombonaFracionada(false) })
+
+test('vendedor cria cotação fracionada e não vê o campo dedicado', async ({ page }, info) => {
+  await entrar(page, USUARIOS.vendedor)
+  await irPara(page, 'Solicitar Cotação')
+  await page.locator('[data-act="new-quote"]').click()
+  await escolherNaLista(page, page.locator('#qc-parte'), 'Alfaquim')
+  const item = page.locator('[data-item="0"]')
+  await item.locator('select').first().selectOption({ label: 'HCL' })
+  await item.locator('select').nth(1).selectOption('BOMBONA')
+  await item.getByLabel('QTD (KG)').pressSequentially('3000')
+  const volumes = item.getByLabel('Volumes')
+  if (!(await volumes.inputValue())) await volumes.fill('60')
+  await expect(page.locator('#qc-veiculo')).toHaveCount(0)
+  await expect(page.locator('#qc-dedicado')).toHaveCount(0)
+  await page.locator('#qc-valor').pressSequentially('8000')
+  await escolherNaLista(page, page.locator('#qc-origem'), 'Paulínia')
+  const destino = page.locator('#qc-destino')
+  if ((await destino.getAttribute('readonly')) === null) await escolherNaLista(page, destino, 'Campinas')
+  await foto(page, info, 'dedicado-criacao-sem-campo')
+  await page.locator('[data-act="save-quote"]').click()
+  await expect(page.locator('#qc-parte')).toHaveCount(0)
+  const grupo = page.locator('[data-group="ABERTA"]')
+  codigo = (await grupo.locator('.qcard').first().innerText()).match(/COT-\d+/)?.[0]
+  expect(codigo).toBeTruthy()
+})
+
+test('administrador encaminha à ARCO', async ({ page }) => {
+  await entrar(page, USUARIOS.admin)
+  await irPara(page, 'Solicitar Cotação')
+  await cartao(page, codigo).locator('[data-act="def-quote"]').click()
+  await page.locator('#fwSearch').fill('ARCO')
+  await page.locator('[data-carrier]', { hasText: /^\s*ARCO\s*$/ }).first().locator('input').check()
+  await page.locator('[data-act="forward-selected"]').click()
+  await expect(toast(page)).toContainText(/encaminhad/i)
+})
+
+test('transportadora vê o dedicado só no modal de resposta; marcar libera tipo de carga e eixos', async ({ page }, info) => {
+  await entrar(page, USUARIOS.transportadora)
+  await irPara(page, 'Minhas Cotações')
+  await cartao(page, codigo).locator('[data-act="answer-quote"]').click()
+  const dedicado = page.locator('input[id^="rd-"]')
+  await expect(dedicado).toBeVisible()
+  await expect(page.locator('select[id^="rg-"]')).toHaveCount(0)
+  await expect(page.locator('select[id^="re-"]')).toHaveCount(0)
+  await dedicado.check()
+  await expect(page.locator('select[id^="rg-"]')).toBeVisible()
+  await expect(page.locator('select[id^="re-"]')).toBeVisible()
+  await page.locator('input[id^="rt-"]').pressSequentially('2500')
+  await page.locator('select[id^="rc-"]').selectOption({ index: 1 })
+  await page.locator('input[id^="rpc-"]').fill('1')
+  await page.locator('input[id^="rp-"]').fill('3')
+  await page.locator('select[id^="re-"]').selectOption('5')
+  await foto(page, info, 'dedicado-responder-marcado')
+  await page.locator('[data-act="respond-quote"]').click()
+  await expect(toast(page)).toContainText(/resposta|registrad/i)
+})
+
+test('admin e vendedor não veem o campo dedicado no detalhe nem na API', async ({ page }, info) => {
+  await entrar(page, USUARIOS.admin)
+  await irPara(page, 'Solicitar Cotação')
+  await cartao(page, codigo).locator('[data-act="view-quote"]').click()
+  await expect(page.locator('#quote-title')).toContainText(codigo)
+  await expect(page.locator('[data-resp]').first()).toBeVisible()
+  await expect(page.locator('[data-dedicado]')).toHaveCount(0)
+  await foto(page, info, 'dedicado-detalhe-admin')
+  const admin = await api(USUARIOS.admin)
+  const lista = await (await admin.get('cotacoes?codigo=' + codigo)).json()
+  const resp = lista.data[0].negociacao.respostas[0]
+  expect(resp).not.toHaveProperty('dedicado')
+  expect(resp.piso_valido).toBe(true)
+  expect(lista.data[0]).not.toHaveProperty('dedicado')
+  await admin.dispose()
+})
+
+test('Consultar Cotação: tabela, filtro e olho abre o modal (única ação) — admin', async ({ page }, info) => {
+  await entrar(page, USUARIOS.admin)
+  await irPara(page, 'Consultar Cotação')
+  await expect(page).toHaveURL(/\/quote-search/)
+  await expect(page.locator('#quoteTable')).toBeVisible()
+  const linha = page.locator('#quoteRows tr[data-quote-row]', { hasText: codigo })
+  await expect(linha).toBeVisible()
+  await foto(page, info, 'consultar-cotacao-admin')
+  await page.locator('#flt-txt').fill(codigo)
+  await expect(page.locator('#quoteRows tr[data-quote-row]')).toHaveCount(1)
+  await page.locator('#flt-txt').fill('zzz-nada')
+  await expect(page.getByText('Nenhuma cotação com esse filtro.')).toBeVisible()
+  await page.locator('#flt-txt').fill('')
+  await page.locator('#flt-produto').fill('HCL')
+  await page.locator('#flt-origem').fill('Paulinia')
+  await expect(linha).toBeVisible()
+  await page.locator('#flt-destino').fill('zzz-nada')
+  await expect(page.getByText('Nenhuma cotação com esse filtro.')).toBeVisible()
+  for (const id of ['#flt-produto', '#flt-origem', '#flt-destino']) await page.locator(id).fill('')
+  await page.locator('#flt-txt').fill(codigo)
+  await expect(linha.locator('button')).toHaveCount(1)
+  await linha.locator('[data-act="view-quote"]').click()
+  await expect(page.locator('#quote-title')).toContainText(codigo)
+  await expect(page.locator('[data-act="answer-quote"], [data-act="close-quote"], [data-act="forward-quote"]')).toHaveCount(0)
+})
+
+test('Consultar Cotação: vendedor e transportadora também consultam', async ({ page }, info) => {
+  await entrar(page, USUARIOS.vendedor)
+  await irPara(page, 'Consultar Cotação')
+  await expect(page.locator('#quoteRows tr[data-quote-row]', { hasText: codigo })).toBeVisible()
+  await foto(page, info, 'consultar-cotacao-vendedor')
+
+  await page.evaluate(() => localStorage.clear())
+  await page.context().clearCookies()
+  await entrar(page, USUARIOS.transportadora)
+  await irPara(page, 'Consultar Cotação')
+  await expect(page.locator('#quoteRows tr[data-quote-row]', { hasText: codigo })).toBeVisible()
+  await foto(page, info, 'consultar-cotacao-transportadora')
+})
